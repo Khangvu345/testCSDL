@@ -9,5 +9,10 @@ class LopTCBase(BaseModel):
 class LopTCCreate(LopTCBase):
     MaLopTC: str
 
+class LopTCUpdate(BaseModel):
+    MaMH: Optional[str] = None
+    MaGV: Optional[str] = None
+    MaKy: Optional[str] = None
+
 class LopTC(LopTCBase):
     MaLopTC: str
