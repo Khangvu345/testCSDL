@@ -1,9 +1,13 @@
-# backend/schemas/loptc.py
 from pydantic import BaseModel
 from typing import Optional
 
-class DiemUpdateRequest(BaseModel):
-    MaSV: str
-    DiemCC: Optional[float]
-    DiemGK: Optional[float]
-    DiemCK: Optional[float]
+class LopTCBase(BaseModel):
+    MaMH: str
+    MaGV: str
+    MaKy: str
+
+class LopTCCreate(LopTCBase):
+    MaLopTC: str
+
+class LopTC(LopTCBase):
+    MaLopTC: str

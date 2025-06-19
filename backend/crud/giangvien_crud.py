@@ -1,71 +1,113 @@
-# backend/crud/giangvien_crud.py
-
 def get_teacher_classes(db_connection, ma_gv: str):
     """Lấy danh sách lớp tín chỉ của giảng viên."""
-    cursor = db_connection.cursor()
-    query = """
-        SELECT ltc.MaLTC, mh.TenMH, hk.TenHK, ltc.Nhom
-        FROM loptinchi ltc
-        JOIN monhoc mh ON ltc.MaMH = mh.MaMH
-        JOIN hocky hk ON ltc.MaHK = hk.MaHK
-        WHERE ltc.MaGV = %s
-    """
-    cursor.execute(query, (ma_gv,))
-    results = cursor.fetchall()
-    cursor.close()
-    return results
+    with db_connection.cursor() as cursor:
+        query = """
+            SELECT ltc.MaLopTC, mh.TenMH, kh.TenKy
+            FROM LopTC ltc
+            JOIN MonHoc mh ON ltc.MaMH = mh.MaMH
+            JOIN KyHoc kh ON ltc.MaKy = kh.MaKy
+            WHERE ltc.MaGV = %s
+        """
+        cursor.execute(query, (ma_gv,))
+        return cursor.fetchall()
 
-def get_students_in_class(db_connection, ma_ltc: int):
+def get_students_in_class(db_connection, ma_ltc: str):
     """Lấy danh sách sinh viên và điểm trong một lớp tín chỉ."""
-    cursor = db_connection.cursor()
-    query = """
-        SELECT sv.MaSV, sv.HoTen, bd.DiemCC, bd.DiemGK, bd.DiemCK, bd.DiemHe10
-        FROM dangky dk
-        JOIN sinhvien sv ON dk.MaSV = sv.MaSV
-        LEFT JOIN bangdiem bd ON dk.MaLTC = bd.MaLTC AND dk.MaSV = bd.MaSV
-        WHERE dk.MaLTC = %s
-    """
-    cursor.execute(query, (ma_ltc,))
-    results = cursor.fetchall()
-    cursor.close()
-    return results
+    with db_connection.cursor() as cursor:
+        query = """
+            SELECT 
+                sv.MaSV, sv.HoTen, bd.DiemChuyenCan, bd.DiemGiuaKy, 
+                bd.DiemCuoiKy, bd.DiemThucHanh, bd.DiemTongKetHe10, bd.TrangThaiQuaMon
+            FROM BangDiem bd
+            JOIN SinhVien sv ON bd.MaSV = sv.MaSV
+            WHERE bd.MaLopTC = %s
+        """
+        cursor.execute(query, (ma_ltc,))
+        return cursor.fetchall()
 
-def update_student_grade(db_connection, ma_ltc: int, ma_sv: str, diem_cc, diem_gk, diem_ck):
-    """Cập nhật hoặc nhập điểm cho sinh viên."""
-    diem_he_10 = None
-    if diem_cc is not None and diem_gk is not None and diem_ck is not None:
-        diem_he_10 = round(0.1 * diem_cc + 0.2 * diem_gk + 0.7 * diem_ck, 1)
+def update_student_grade(db_connection, ma_ltc: str, ma_sv: str, diem_data: dict):
+    """Cập nhật điểm cho sinh viên với logic tính điểm động."""
+    with db_connection.cursor() as cursor:
+        # 1. Lấy hệ số môn học
+        get_coeffs_query = """
+            SELECT mh.HeSoChuyenCan, mh.HeSoGiuaKy, mh.HeSoCuoiKy, mh.HeSoThucHanh
+            FROM LopTC ltc JOIN MonHoc mh ON ltc.MaMH = mh.MaMH
+            WHERE ltc.MaLopTC = %s
+        """
+        cursor.execute(get_coeffs_query, (ma_ltc,))
+        coeffs = cursor.fetchone()
+        if not coeffs:
+            raise ValueError(f"Không tìm thấy hệ số cho Lớp TC {ma_ltc}")
 
-    diem_chu = None
-    if diem_he_10 is not None:
-        if diem_he_10 >= 8.5: diem_chu = 'A'
-        elif diem_he_10 >= 7.0: diem_chu = 'B'
-        elif diem_he_10 >= 5.5: diem_chu = 'C'
-        elif diem_he_10 >= 4.0: diem_chu = 'D'
-        else: diem_chu = 'F'
+        # 2. Tính điểm tổng kết
+        diem_tong_ket = 0.0
+        tong_he_so = 0.0
+        diem_thanh_phan = {
+            'DiemChuyenCan': (diem_data.get('DiemChuyenCan'), coeffs.get('HeSoChuyenCan')),
+            'DiemGiuaKy': (diem_data.get('DiemGiuaKy'), coeffs.get('HeSoGiuaKy')),
+            'DiemCuoiKy': (diem_data.get('DiemCuoiKy'), coeffs.get('HeSoCuoiKy')),
+            'DiemThucHanh': (diem_data.get('DiemThucHanh'), coeffs.get('HeSoThucHanh')),
+        }
 
-    cursor = db_connection.cursor()
-    query = """
-        INSERT INTO bangdiem (MaLTC, MaSV, DiemCC, DiemGK, DiemCK, DiemHe10, DiemChu)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
-        ON DUPLICATE KEY UPDATE
-        DiemCC = VALUES(DiemCC),
-        DiemGK = VALUES(DiemGK),
-        DiemCK = VALUES(DiemCK),
-        DiemHe10 = VALUES(DiemHe10),
-        DiemChu = VALUES(DiemChu)
-    """
-    params = (ma_ltc, ma_sv, diem_cc, diem_gk, diem_ck, diem_he_10, diem_chu)
-    cursor.execute(query, params)
-    db_connection.commit()
-    cursor.close()
-    return {"status": "success", "ma_sv": ma_sv, "diem_he_10": diem_he_10}
+        for diem, he_so in diem_thanh_phan.values():
+            if diem is not None and he_so is not None:
+                diem_tong_ket += diem * he_so
+                tong_he_so += he_so
 
-def check_teacher_permission_for_class(db_connection, ma_gv: str, ma_ltc: int) -> bool:
+        final_score_10 = round(diem_tong_ket / tong_he_so, 1) if tong_he_so > 0 else 0.0
+
+        # 3. Quy đổi
+        if final_score_10 >= 9.0:
+            diem_chu, final_score_4 = 'A+', 4.0
+        elif final_score_10 >= 8.5:
+            diem_chu, final_score_4 = 'A', 3.7
+        elif final_score_10 >= 8.0:
+            diem_chu, final_score_4 = 'B+', 3.5
+        elif final_score_10 >= 7.0:
+            diem_chu, final_score_4 = 'B', 3.0
+        elif final_score_10 >= 6.5:
+            diem_chu, final_score_4 = 'C+', 2.5
+        elif final_score_10 >= 5.5:
+            diem_chu, final_score_4 = 'C', 2.0
+        elif final_score_10 >= 5.0:
+            diem_chu, final_score_4 = 'D+', 1.5
+        elif final_score_10 >= 4.0:
+            diem_chu, final_score_4 = 'D', 1.0
+        else:
+            diem_chu, final_score_4 = 'F', 0.0
+        trang_thai = 'Đạt' if final_score_10 >= 4.0 else 'Trượt'
+
+        # 4. Cập nhật Database
+        update_query = """
+            INSERT INTO BangDiem (MaSV, MaLopTC, DiemChuyenCan, DiemGiuaKy, DiemCuoiKy, DiemThucHanh, DiemTongKetHe10, DiemTongKetHe4, DiemChu, TrangThaiQuaMon)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE
+            DiemChuyenCan = VALUES(DiemChuyenCan), DiemGiuaKy = VALUES(DiemGiuaKy), DiemCuoiKy = VALUES(DiemCuoiKy),
+            DiemThucHanh = VALUES(DiemThucHanh), DiemTongKetHe10 = VALUES(DiemTongKetHe10), DiemTongKetHe4 = VALUES(DiemTongKetHe4),
+            DiemChu = VALUES(DiemChu), TrangThaiQuaMon = VALUES(TrangThaiQuaMon)
+        """
+        params = (
+        ma_sv, ma_ltc, diem_data.get('DiemChuyenCan'), diem_data.get('DiemGiuaKy'), diem_data.get('DiemCuoiKy'),
+        diem_data.get('DiemThucHanh'), final_score_10, final_score_4, diem_chu, trang_thai)
+        cursor.execute(update_query, params)
+        db_connection.commit()
+
+    return {"status": "success", "ma_sv": ma_sv, "diem_he_10": final_score_10}
+
+
+def delete_student_grade(db_connection, ma_ltc: str, ma_sv: str):
+    """Xóa hoàn toàn bản ghi điểm của một sinh viên khỏi lớp tín chỉ."""
+    with db_connection.cursor() as cursor:
+        query = "DELETE FROM BangDiem WHERE MaSV = %s AND MaLopTC = %s"
+        cursor.execute(query, (ma_sv, ma_ltc))
+        db_connection.commit()
+        return {"status": "deleted", "deleted_rows": cursor.rowcount}
+
+
+def check_teacher_permission_for_class(db_connection, ma_gv: str, ma_ltc: str) -> bool:
     """Kiểm tra xem giảng viên có quyền với lớp tín chỉ này không."""
-    cursor = db_connection.cursor()
-    query = "SELECT COUNT(*) as count FROM loptinchi WHERE MaLTC = %s AND MaGV = %s"
-    cursor.execute(query, (ma_ltc, ma_gv))
-    result = cursor.fetchone()
-    cursor.close()
-    return result['count'] > 0
+    with db_connection.cursor() as cursor:
+        query = "SELECT COUNT(*) as count FROM LopTC WHERE MaLopTC = %s AND MaGV = %s"
+        cursor.execute(query, (ma_ltc, ma_gv))
+        result = cursor.fetchone()
+        return result['count'] > 0

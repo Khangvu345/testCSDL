@@ -1,27 +1,30 @@
-# backend/schemas/bangdiem.py
 from pydantic import BaseModel
 from typing import Optional
 
-class DiemMonHoc(BaseModel):
+class DiemMonHoc(BaseModel): #sinh viên xem điểm
+    MaLopTC: str
     MaMH: str
     TenMH: str
     SoTinChi: int
-    DiemCC: Optional[float] = None
-    DiemGK: Optional[float] = None
-    DiemCK: Optional[float] = None
-    DiemHe10: Optional[float] = None
+    DiemChuyenCan: Optional[float] = None
+    DiemGiuaKy: Optional[float] = None
+    DiemCuoiKy: Optional[float] = None
+    DiemThucHanh: Optional[float] = None
+    DiemTongKetHe10: Optional[float] = None
     DiemChu: Optional[str] = None
+    TrangThaiQuaMon: Optional[str] = None
 
-class DiemTongKetKy(BaseModel):
-    MaHK: str
-    TenHK: str
-    NamHoc: str
-    DiemTBKyHe10: float
-    DiemTBKyHe4: float
-    SoTinChiDatKy: int
-    SoTinChiTichLuy: int
+class DiemTongKetKy(BaseModel): #sinh viên xem điểm tổng kết
+    MaKy: str
+    DiemTBKyHe10: Optional[float] = None
+    DiemTBKyHe4: Optional[float] = None
+    DiemTBKyChu: Optional[str] = None
+    SoTCDatKy: Optional[int] = None
+    XepLoaiHocLucKy: Optional[str] = None
 
-class TienDoHocTap(BaseModel):
-    tong_tin_chi_dat: int
-    tong_tin_chi_chuong_trinh: int
-    phan_tram_hoan_thanh: float
+class DiemUpdateRequest(BaseModel): #giảng viên nhập điểm
+    MaSV: str
+    DiemChuyenCan: Optional[float] = None
+    DiemGiuaKy: Optional[float] = None
+    DiemCuoiKy: Optional[float] = None
+    DiemThucHanh: Optional[float] = None

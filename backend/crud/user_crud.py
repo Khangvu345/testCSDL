@@ -1,4 +1,3 @@
-# backend/crud/user_crud.py
 from utils.security import verify_password
 
 def get_user_from_db(db_connection, username: str):
