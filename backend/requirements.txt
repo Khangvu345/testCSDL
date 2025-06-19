@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+pydantic[email]
+PyMySQL
+
+#Ghim phien ban Passlib va Bcrypt cu the de dam bao tuong thich
+passlib==1.7.4
+bcrypt==3.2.0
+
+python-jose[cryptography]
+python-multipart

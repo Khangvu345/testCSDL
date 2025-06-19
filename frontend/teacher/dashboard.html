@@ -1,0 +1,44 @@
+    <!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng điều khiển - Giảng viên</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        #classes-list, #students-list { margin-top: 1rem; }
+        .class-item {
+            cursor: pointer;
+            padding: 10px;
+            border: 1px solid #ccc;
+            margin-bottom: 5px;
+            border-radius: 4px;
+        }
+        .class-item:hover, .class-item.active {
+            background-color: #e9ecef;
+        }
+        .grade-input { width: 60px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="header">
+            <h2 id="welcomeMessage">Chào mừng Giảng viên</h2>
+            <button id="logoutBtn">Đăng xuất</button>
+        </div>
+
+        <h3>Các lớp tín chỉ đang dạy</h3>
+        <div id="classes-list">
+            <p>Đang tải danh sách lớp...</p>
+        </div>
+
+        <hr>
+
+        <h3 id="current-class-title">Chọn một lớp để xem danh sách sinh viên</h3>
+        <div id="students-list">
+            <!-- Table of students will be rendered here -->
+        </div>
+    </div>
+    <script src="../js/teacher.js"></script>
+</body>
+</html>

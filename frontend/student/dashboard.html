@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng điều khiển - Sinh viên</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="header">
+            <h2 id="welcomeMessage">Chào mừng Sinh viên</h2>
+            <button id="logoutBtn">Đăng xuất</button>
+        </div>
+
+        <h3>Tiến độ học tập</h3>
+        <div id="progress-info">
+            <p>Đang tải dữ liệu...</p>
+        </div>
+
+        <h3>Bảng điểm chi tiết</h3>
+        <table id="gradesTable">
+            <thead>
+                <tr>
+                    <th>Mã Môn</th>
+                    <th>Tên Môn học</th>
+                    <th>Số TC</th>
+                    <th>Điểm CC</th>
+                    <th>Điểm GK</th>
+                    <th>Điểm CK</th>
+                    <th>Điểm Hệ 10</th>
+                    <th>Điểm Chữ</th>
+                </tr>
+            </thead>
+            <tbody id="gradesTableBody">
+                <!-- Dữ liệu sẽ được chèn vào đây bởi JavaScript -->
+            </tbody>
+        </table>
+    </div>
+    <script src="../js/student.js"></script>
+</body>
+</html>
