@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://127.0.0.1:8000';
+const API_BASE_URL = '[http://127.0.0.1:8000](http://127.0.0.1:8000)'; // Sửa lỗi URL
 const token = localStorage.getItem('accessToken');
 let currentLtcId = null;
 
@@ -8,49 +8,39 @@ function logout() {
 }
 
 async function fetchWithAuth(url, options = {}) {
-    const headers = {
-        'Content-Type': 'application/json',
-        ...options.headers,
-        'Authorization': `Bearer ${token}`
-    };
-
+    if (!token) { logout(); return Promise.reject("No token"); }
+    const headers = { 'Content-Type': 'application/json', ...options.headers, 'Authorization': `Bearer ${token}` };
     const response = await fetch(url, { ...options, headers });
-
-    if (response.status === 401) {
-        logout();
+    if (response.status === 401) { logout(); }
+    if (response.status === 204 || (response.status === 200 && options.method === 'DELETE')) {
+        return { status: 'success' };
     }
-
-    const responseData = await response.json();
-    if (!response.ok) {
-        throw new Error(responseData.detail || 'Có lỗi xảy ra');
-    }
-
+    const responseData = await response.json().catch(() => ({}));
+    if (!response.ok) { throw new Error(responseData.detail || 'Có lỗi xảy ra'); }
     return responseData;
 }
 
 async function loadTeacherClasses() {
     const classesDiv = document.getElementById('classes-list');
     try {
-        const classes = await fetchWithAuth(`${API_BASE_URL}/api/giangvien/me/classes`);
+        const classes = await fetchWithAuth(`${API_BASE_URL}/api/giangvien/me/lop-tin-chi`);
         if (classes.length === 0) {
             classesDiv.innerHTML = '<p>Bạn chưa được phân công lớp nào.</p>';
             return;
         }
-
-        classesDiv.innerHTML = ''; // Xóa nội dung cũ
-        classes.forEach(cls => {
-            const classElement = document.createElement('div');
-            classElement.className = 'class-item';
-            classElement.textContent = `${cls.TenMH} - Nhóm ${cls.Nhom} (${cls.TenHK})`;
-            classElement.dataset.ltcid = cls.MaLTC;
-            classElement.addEventListener('click', () => {
-                document.querySelectorAll('.class-item').forEach(item => item.classList.remove('active'));
-                classElement.classList.add('active');
-                currentLtcId = cls.MaLTC;
-                document.getElementById('current-class-title').textContent = `Lớp: ${cls.TenMH} - Nhóm ${cls.Nhom}`;
-                loadStudentsInClass(cls.MaLTC);
+        classesDiv.innerHTML = classes.map(cls => `
+            <div class="class-item" data-ltcid="${cls.MaLopTC}" data-classname="${cls.TenMH} - ${cls.TenKy}">
+                ${cls.TenMH} (${cls.TenKy})
+            </div>
+        `).join('');
+        classesDiv.querySelectorAll('.class-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                document.querySelectorAll('.class-item').forEach(i => i.classList.remove('active'));
+                e.currentTarget.classList.add('active');
+                currentLtcId = e.currentTarget.dataset.ltcid;
+                document.getElementById('current-class-title').textContent = `Lớp: ${e.currentTarget.dataset.classname}`;
+                loadStudentsInClass(currentLtcId);
             });
-            classesDiv.appendChild(classElement);
         });
     } catch (error) {
         console.error('Lỗi tải danh sách lớp:', error);
@@ -62,42 +52,29 @@ async function loadStudentsInClass(maLtc) {
     const studentsDiv = document.getElementById('students-list');
     studentsDiv.innerHTML = '<p>Đang tải danh sách sinh viên...</p>';
     try {
-        const students = await fetchWithAuth(`${API_BASE_URL}/api/giangvien/classes/${maLtc}/students`);
-
+        const students = await fetchWithAuth(`${API_BASE_URL}/api/giangvien/lop-tin-chi/${maLtc}/danh-sach-sinh-vien`);
         let tableHTML = `
-            <table>
-                <thead>
-                    <tr>
-                        <th>Mã SV</th>
-                        <th>Họ Tên</th>
-                        <th>Điểm CC</th>
-                        <th>Điểm GK</th>
-                        <th>Điểm CK</th>
-                        <th>Hành động</th>
-                    </tr>
-                </thead>
-                <tbody>
-        `;
+            <table><thead><tr>
+                <th>Mã SV</th><th>Họ Tên</th><th>Điểm CC</th><th>Điểm GK</th><th>Điểm CK</th><th>Điểm TH</th><th>Hành động</th>
+            </tr></thead><tbody>`;
         students.forEach(sv => {
             tableHTML += `
                 <tr data-masv="${sv.MaSV}">
-                    <td>${sv.MaSV}</td>
-                    <td>${sv.HoTen}</td>
-                    <td><input type="number" class="grade-input" id="cc-${sv.MaSV}" step="0.1" min="0" max="10" value="${sv.DiemCC ?? ''}"></td>
-                    <td><input type="number" class="grade-input" id="gk-${sv.MaSV}" step="0.1" min="0" max="10" value="${sv.DiemGK ?? ''}"></td>
-                    <td><input type="number" class="grade-input" id="ck-${sv.MaSV}" step="0.1" min="0" max="10" value="${sv.DiemCK ?? ''}"></td>
-                    <td><button class="save-grade-btn" data-masv="${sv.MaSV}">Lưu</button></td>
-                </tr>
-            `;
+                    <td>${sv.MaSV}</td><td>${sv.HoTen}</td>
+                    <td><input type="number" class="grade-input" id="cc-${sv.MaSV}" value="${sv.DiemChuyenCan ?? ''}"></td>
+                    <td><input type="number" class="grade-input" id="gk-${sv.MaSV}" value="${sv.DiemGiuaKy ?? ''}"></td>
+                    <td><input type="number" class="grade-input" id="ck-${sv.MaSV}" value="${sv.DiemCuoiKy ?? ''}"></td>
+                    <td><input type="number" class="grade-input" id="th-${sv.MaSV}" value="${sv.DiemThucHanh ?? ''}"></td>
+                    <td class="action-buttons">
+                        <button class="save-grade-btn" data-masv="${sv.MaSV}">Lưu</button>
+                        <button class="delete-btn" data-masv="${sv.MaSV}">Xóa</button>
+                    </td>
+                </tr>`;
         });
-        tableHTML += '</tbody></table>';
-        studentsDiv.innerHTML = tableHTML;
+        studentsDiv.innerHTML = tableHTML + '</tbody></table>';
 
-        // Add event listeners to save buttons
-        document.querySelectorAll('.save-grade-btn').forEach(button => {
-            button.addEventListener('click', handleSaveGrade);
-        });
-
+        document.querySelectorAll('.save-grade-btn').forEach(b => b.addEventListener('click', handleSaveGrade));
+        document.querySelectorAll('.delete-btn').forEach(b => b.addEventListener('click', handleDeleteGrade));
     } catch (error) {
         console.error('Lỗi tải danh sách sinh viên:', error);
         studentsDiv.innerHTML = `<p style="color:red;">${error.message}</p>`;
@@ -106,42 +83,50 @@ async function loadStudentsInClass(maLtc) {
 
 async function handleSaveGrade(event) {
     const maSV = event.target.dataset.masv;
-    const diemCC = document.getElementById(`cc-${maSV}`).value;
-    const diemGK = document.getElementById(`gk-${maSV}`).value;
-    const diemCK = document.getElementById(`ck-${maSV}`).value;
+    const getValue = (id) => {
+        const val = document.getElementById(id).value;
+        return val === '' ? null : parseFloat(val);
+    };
 
     const gradeData = {
         MaSV: maSV,
-        DiemCC: diemCC === '' ? null : parseFloat(diemCC),
-        DiemGK: diemGK === '' ? null : parseFloat(diemGK),
-        DiemCK: diemCK === '' ? null : parseFloat(diemCK)
+        DiemChuyenCan: getValue(`cc-${maSV}`),
+        DiemGiuaKy: getValue(`gk-${maSV}`),
+        DiemCuoiKy: getValue(`ck-${maSV}`),
+        DiemThucHanh: getValue(`th-${maSV}`)
     };
 
     try {
-        const result = await fetchWithAuth(`${API_BASE_URL}/api/giangvien/classes/${currentLtcId}/grades`, {
+        await fetchWithAuth(`${API_BASE_URL}/api/giangvien/lop-tin-chi/${currentLtcId}/nhap-diem`, {
             method: 'POST',
             body: JSON.stringify(gradeData)
         });
-        alert(`Đã cập nhật điểm cho sinh viên ${maSV} thành công!`);
-        // Optional: reload the student list to show calculated score
+        alert(`Đã cập nhật điểm cho sinh viên ${maSV}.`);
         loadStudentsInClass(currentLtcId);
-
     } catch (error) {
         console.error('Lỗi lưu điểm:', error);
         alert(`Lỗi: ${error.message}`);
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    if (!token) {
-        logout();
-        return;
+async function handleDeleteGrade(event) {
+    const maSV = event.target.dataset.masv;
+    if (confirm(`Bạn có chắc chắn muốn xóa toàn bộ điểm của sinh viên ${maSV} khỏi lớp này?`)) {
+        try {
+            await fetchWithAuth(`${API_BASE_URL}/api/giangvien/lop-tin-chi/${currentLtcId}/xoa-diem/${maSV}`, {
+                method: 'DELETE'
+            });
+            alert(`Đã xóa điểm của sinh viên ${maSV}.`);
+            loadStudentsInClass(currentLtcId);
+        } catch (error) {
+            console.error('Lỗi xóa điểm:', error);
+            alert(`Lỗi: ${error.message}`);
+        }
     }
+}
 
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    document.getElementById('welcomeMessage').textContent = `Chào mừng, ${payload.sub} (GV: ${payload.user_id})`;
-
+document.addEventListener('DOMContentLoaded', () => {
+    if (!token) { logout(); return; }
     document.getElementById('logoutBtn').addEventListener('click', logout);
-
     loadTeacherClasses();
 });

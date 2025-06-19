@@ -4,8 +4,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from schemas.token import Token
 from crud import user_crud
 from utils import jwt_handler
-from routers.dependencies import get_db  # Sửa import
-
+from routers.dependencies import get_db
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 

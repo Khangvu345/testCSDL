@@ -13,6 +13,9 @@ class GiangVienBase(BaseModel):
 class GiangVienCreate(GiangVienBase):
     MaGV: str
 
+class GiangVienUpdate(GiangVienBase):
+    HoVaTen: Optional[str] = None # Cho phép cập nhật từng phần
+
 class GiangVien(GiangVienBase):
     MaGV: str
 

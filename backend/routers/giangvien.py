@@ -1,8 +1,10 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, status
+from typing import List
 from schemas.giangvien import LopTinChiGV, SinhVienTrongLopTC
 from schemas.bangdiem import DiemUpdateRequest
+from schemas.token import TokenData
 from crud import giangvien_crud
-
+from routers.dependencies import get_db, require_role
 router = APIRouter(prefix="/api/giangvien", tags=["Teacher"])
 teacher_dependency = Depends(require_role("teacher"))
 

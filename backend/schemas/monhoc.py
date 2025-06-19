@@ -14,5 +14,10 @@ class MonHocBase(BaseModel):
 class MonHocCreate(MonHocBase):
     MaMH: str
 
+class MonHocUpdate(MonHocBase):
+    TenMH: Optional[str] = None
+    SoTinChi: Optional[int] = None
+    # Các trường khác có thể được thêm vào đây nếu muốn cập nhật
+
 class MonHoc(MonHocBase):
     MaMH: str

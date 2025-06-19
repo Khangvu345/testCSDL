@@ -1,6 +1,4 @@
-# backend/hash_password.py
 # Chạy tệp này để tạo một chuỗi mật khẩu đã được mã hóa bằng bcrypt.
-
 from utils.security import get_password_hash
 import sys
 

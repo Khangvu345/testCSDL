@@ -4,7 +4,6 @@ from schemas.bangdiem import DiemMonHoc, DiemTongKetKy
 from schemas.token import TokenData
 from crud import sinhvien_crud
 from routers.dependencies import get_db, require_role
-
 router = APIRouter(prefix="/api/sinhvien", tags=["Student"])
 student_dependency = Depends(require_role("student"))
 
