@@ -15,5 +15,8 @@ class SinhVienBase(BaseModel):
 class SinhVienCreate(SinhVienBase):
     MaSV: str
 
+class SinhVienUpdate(SinhVienBase):
+    HoTen: Optional[str] = None
+
 class SinhVien(SinhVienBase):
     MaSV: str

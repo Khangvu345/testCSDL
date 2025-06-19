@@ -12,4 +12,3 @@ class KhoaUpdate(BaseModel):
 
 class Khoa(KhoaBase):
     MaKhoa: str
-

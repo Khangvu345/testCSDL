@@ -5,19 +5,24 @@ class MonHocBase(BaseModel):
     TenMH: str
     SoTinChi: int
     LoaiMH: Optional[str] = None
-    HeSoChuyenCan: Optional[str] = None
-    HeSoGiuaKy: Optional[str] = None
-    HeSoCuoiKy: Optional[str] = None
-    HeSoThucHanh: Optional[str] = None
-    MaKhoa: str
+    HeSoChuyenCan: Optional[float] = None
+    HeSoGiuaKy: Optional[float] = None
+    HeSoCuoiKy: Optional[float] = None
+    HeSoThucHanh: Optional[float] = None   
+    MaKhoa: Optional[str] = None
 
 class MonHocCreate(MonHocBase):
     MaMH: str
 
-class MonHocUpdate(MonHocBase):
+class MonHocUpdate(BaseModel):
     TenMH: Optional[str] = None
     SoTinChi: Optional[int] = None
-    # Các trường khác có thể được thêm vào đây nếu muốn cập nhật
+    LoaiMH: Optional[str] = None
+    HeSoChuyenCan: Optional[float] = None
+    HeSoGiuaKy: Optional[float] = None
+    HeSoCuoiKy: Optional[float] = None
+    HeSoThucHanh: Optional[float] = None
+    MaKhoa: Optional[str] = None
 
 class MonHoc(MonHocBase):
     MaMH: str

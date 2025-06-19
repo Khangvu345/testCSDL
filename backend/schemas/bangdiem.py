@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
 
-class DiemMonHoc(BaseModel): #sinh viên xem điểm
+class DiemMonHoc(BaseModel):
     MaLopTC: str
     MaMH: str
     TenMH: str
@@ -14,7 +14,7 @@ class DiemMonHoc(BaseModel): #sinh viên xem điểm
     DiemChu: Optional[str] = None
     TrangThaiQuaMon: Optional[str] = None
 
-class DiemTongKetKy(BaseModel): #sinh viên xem điểm tổng kết
+class DiemTongKetKy(BaseModel):
     MaKy: str
     DiemTBKyHe10: Optional[float] = None
     DiemTBKyHe4: Optional[float] = None
@@ -22,7 +22,7 @@ class DiemTongKetKy(BaseModel): #sinh viên xem điểm tổng kết
     SoTCDatKy: Optional[int] = None
     XepLoaiHocLucKy: Optional[str] = None
 
-class DiemUpdateRequest(BaseModel): #giảng viên nhập điểm
+class DiemUpdateRequest(BaseModel):
     MaSV: str
     DiemChuyenCan: Optional[float] = None
     DiemGiuaKy: Optional[float] = None

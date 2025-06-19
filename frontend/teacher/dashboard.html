@@ -6,18 +6,11 @@
     <title>Bảng điều khiển - Giảng viên</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
-        #classes-list, #students-list { margin-top: 1rem; }
-        .class-item {
-            cursor: pointer;
-            padding: 10px;
-            border: 1px solid #ccc;
-            margin-bottom: 5px;
-            border-radius: 4px;
-        }
-        .class-item:hover, .class-item.active {
-            background-color: #e9ecef;
-        }
+        #classes-list { margin-top: 1rem; }
+        .class-item { cursor: pointer; padding: 10px 15px; border: 1px solid #ccc; margin: 5px; border-radius: 20px; display: inline-block; }
+        .class-item.active { background-color: #007bff; color: white; border-color: #007bff; }
         .grade-input { width: 60px; text-align: center; }
+        .action-buttons button { width: auto; font-size: 0.8rem; margin-left: 5px; }
     </style>
 </head>
 <body>
@@ -26,18 +19,11 @@
             <h2 id="welcomeMessage">Chào mừng Giảng viên</h2>
             <button id="logoutBtn">Đăng xuất</button>
         </div>
-
         <h3>Các lớp tín chỉ đang dạy</h3>
-        <div id="classes-list">
-            <p>Đang tải danh sách lớp...</p>
-        </div>
-
+        <div id="classes-list"><p>Đang tải...</p></div>
         <hr>
-
         <h3 id="current-class-title">Chọn một lớp để xem danh sách sinh viên</h3>
-        <div id="students-list">
-            <!-- Table of students will be rendered here -->
-        </div>
+        <div id="students-list"></div>
     </div>
     <script src="../js/teacher.js"></script>
 </body>

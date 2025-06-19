@@ -6,54 +6,12 @@
     <title>Bảng điều khiển - Sinh viên</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
-        .feature-section {
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin-top: 2rem;
-        }
-        .input-group-inline {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
-        }
-        .input-group-inline select, .input-group-inline button {
-            padding: 8px 12px;
-            font-size: 1rem;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-        .input-group-inline button {
-            cursor: pointer;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            transition: background-color 0.2s;
-        }
-        .input-group-inline button:hover {
-            background-color: #0056b3;
-        }
-        .details-card {
-            background-color: #fff;
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin-top: 1rem;
-            border: 1px solid #e1e4e8;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        #course-details-table th, #course-details-table td {
-             text-align: left;
-             padding: 12px;
-             border-bottom: 1px solid #f1f1f1;
-        }
-        #course-details-table th {
-            width: 40%;
-            font-weight: 600;
-            color: #555;
-        }
+        .feature-section { background-color: #f8f9fa; border: 1px solid #dee2e6; padding: 1.5rem; border-radius: 8px; margin-top: 2rem; }
+        .input-group-inline { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; }
+        .input-group-inline select, .input-group-inline button { padding: 8px 12px; font-size: 1rem; border-radius: 5px; border: 1px solid #ccc; }
+        .input-group-inline button { cursor: pointer; background-color: #007bff; color: white; border: none; }
+        .details-card { background-color: #fff; padding: 1.5rem; border-radius: 8px; margin-top: 1rem; border: 1px solid #e1e4e8; }
+        #course-details-table th { width: 40%; font-weight: 600; color: #555; }
     </style>
 </head>
 <body>
@@ -62,36 +20,24 @@
             <h2 id="welcomeMessage">Chào mừng Sinh viên</h2>
             <button id="logoutBtn">Đăng xuất</button>
         </div>
-
         <h3>Tiến độ học tập</h3>
-        <div id="progress-info"><p>Đang tải dữ liệu...</p></div>
-
-        <!-- Chức năng xem điểm tổng kết kỳ -->
+        <div id="progress-info"><p>Đang tải...</p></div>
         <div class="feature-section">
             <h4>Xem điểm tổng kết kỳ học</h4>
             <div class="input-group-inline">
                 <label for="semester-select">Chọn kỳ học:</label>
-                <select id="semester-select"><!-- Các kỳ học sẽ được load vào đây --></select>
-                <button id="viewSummaryBtn">Xem tổng kết</button>
+                <select id="semester-select"></select>
+                <button id="viewSummaryBtn">Xem</button>
             </div>
-            <div id="semester-summary" class="details-card" style="display: none;">
-                <!-- Kết quả điểm tổng kết kỳ sẽ hiển thị ở đây -->
-            </div>
+            <div id="semester-summary" class="details-card" style="display: none;"></div>
         </div>
-
-        <!-- Chức năng xem điểm chi tiết môn học -->
         <div class="feature-section">
             <h4>Xem điểm chi tiết môn học</h4>
             <div class="input-group-inline">
-                <label for="course-select">Chọn môn học (lớp tín chỉ):</label>
-                <select id="course-select">
-                    <option value="">-- Vui lòng chọn một lớp --</option>
-                    <!-- Các lớp tín chỉ đã đăng ký sẽ được load vào đây -->
-                </select>
+                <label for="course-select">Chọn lớp tín chỉ:</label>
+                <select id="course-select"></select>
             </div>
-            <div id="course-details" class="details-card" style="display: none;">
-                <!-- Bảng điểm thành phần sẽ hiển thị ở đây -->
-            </div>
+            <div id="course-details" class="details-card" style="display: none;"></div>
         </div>
     </div>
     <script src="../js/student.js"></script>
