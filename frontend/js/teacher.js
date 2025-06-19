@@ -1,4 +1,4 @@
-const API_BASE_URL = '[http://127.0.0.1:8000](http://127.0.0.1:8000)'; // Sửa lỗi URL
+const API_BASE_URL = 'http://127.0.0.1:8000';
 const token = localStorage.getItem('accessToken');
 let currentLtcId = null;
 
@@ -11,10 +11,8 @@ async function fetchWithAuth(url, options = {}) {
     if (!token) { logout(); return Promise.reject("No token"); }
     const headers = { 'Content-Type': 'application/json', ...options.headers, 'Authorization': `Bearer ${token}` };
     const response = await fetch(url, { ...options, headers });
-    if (response.status === 401) { logout(); }
-    if (response.status === 204 || (response.status === 200 && options.method === 'DELETE')) {
-        return { status: 'success' };
-    }
+    if (response.status === 401) { logout(); throw new Error("Phiên đăng nhập đã hết hạn."); }
+    if (response.status === 204 || (response.status === 200 && options.method === 'DELETE')) { return { status: 'success' }; }
     const responseData = await response.json().catch(() => ({}));
     if (!response.ok) { throw new Error(responseData.detail || 'Có lỗi xảy ra'); }
     return responseData;
@@ -31,8 +29,7 @@ async function loadTeacherClasses() {
         classesDiv.innerHTML = classes.map(cls => `
             <div class="class-item" data-ltcid="${cls.MaLopTC}" data-classname="${cls.TenMH} - ${cls.TenKy}">
                 ${cls.TenMH} (${cls.TenKy})
-            </div>
-        `).join('');
+            </div>`).join('');
         classesDiv.querySelectorAll('.class-item').forEach(item => {
             item.addEventListener('click', (e) => {
                 document.querySelectorAll('.class-item').forEach(i => i.classList.remove('active'));
@@ -43,8 +40,7 @@ async function loadTeacherClasses() {
             });
         });
     } catch (error) {
-        console.error('Lỗi tải danh sách lớp:', error);
-        classesDiv.innerHTML = `<p style="color:red;">${error.message}</p>`;
+        classesDiv.innerHTML = `<p style="color:red;">Lỗi tải danh sách lớp: ${error.message}</p>`;
     }
 }
 
@@ -55,7 +51,7 @@ async function loadStudentsInClass(maLtc) {
         const students = await fetchWithAuth(`${API_BASE_URL}/api/giangvien/lop-tin-chi/${maLtc}/danh-sach-sinh-vien`);
         let tableHTML = `
             <table><thead><tr>
-                <th>Mã SV</th><th>Họ Tên</th><th>Điểm CC</th><th>Điểm GK</th><th>Điểm CK</th><th>Điểm TH</th><th>Hành động</th>
+                <th>Mã SV</th><th>Họ Tên</th><th>Điểm CC</th><th>Điểm GK</th><th>Điểm CK</th><th>Điểm TH</th><th>Tổng kết</th><th>Hành động</th>
             </tr></thead><tbody>`;
         students.forEach(sv => {
             tableHTML += `
@@ -65,19 +61,19 @@ async function loadStudentsInClass(maLtc) {
                     <td><input type="number" class="grade-input" id="gk-${sv.MaSV}" value="${sv.DiemGiuaKy ?? ''}"></td>
                     <td><input type="number" class="grade-input" id="ck-${sv.MaSV}" value="${sv.DiemCuoiKy ?? ''}"></td>
                     <td><input type="number" class="grade-input" id="th-${sv.MaSV}" value="${sv.DiemThucHanh ?? ''}"></td>
+                    <td><b>${sv.DiemTongKetHe10 ?? 'N/A'}</b></td>
                     <td class="action-buttons">
-                        <button class="save-grade-btn" data-masv="${sv.MaSV}">Lưu</button>
+                        <button class="save-btn" data-masv="${sv.MaSV}">Lưu</button>
                         <button class="delete-btn" data-masv="${sv.MaSV}">Xóa</button>
                     </td>
                 </tr>`;
         });
         studentsDiv.innerHTML = tableHTML + '</tbody></table>';
 
-        document.querySelectorAll('.save-grade-btn').forEach(b => b.addEventListener('click', handleSaveGrade));
+        document.querySelectorAll('.save-btn').forEach(b => b.addEventListener('click', handleSaveGrade));
         document.querySelectorAll('.delete-btn').forEach(b => b.addEventListener('click', handleDeleteGrade));
     } catch (error) {
-        console.error('Lỗi tải danh sách sinh viên:', error);
-        studentsDiv.innerHTML = `<p style="color:red;">${error.message}</p>`;
+        studentsDiv.innerHTML = `<p style="color:red;">Lỗi tải danh sách sinh viên: ${error.message}</p>`;
     }
 }
 
@@ -104,8 +100,7 @@ async function handleSaveGrade(event) {
         alert(`Đã cập nhật điểm cho sinh viên ${maSV}.`);
         loadStudentsInClass(currentLtcId);
     } catch (error) {
-        console.error('Lỗi lưu điểm:', error);
-        alert(`Lỗi: ${error.message}`);
+        alert(`Lỗi lưu điểm: ${error.message}`);
     }
 }
 
@@ -119,8 +114,7 @@ async function handleDeleteGrade(event) {
             alert(`Đã xóa điểm của sinh viên ${maSV}.`);
             loadStudentsInClass(currentLtcId);
         } catch (error) {
-            console.error('Lỗi xóa điểm:', error);
-            alert(`Lỗi: ${error.message}`);
+            alert(`Lỗi xóa điểm: ${error.message}`);
         }
     }
 }

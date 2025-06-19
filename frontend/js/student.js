@@ -1,6 +1,6 @@
-const API_BASE_URL = '[http://127.0.0.1:8000](http://127.0.0.1:8000)'; // Sửa lỗi URL
+const API_BASE_URL = 'http://127.0.0.1:8000';
 const token = localStorage.getItem('accessToken');
-let allGradesData = []; // Biến toàn cục để lưu trữ dữ liệu điểm
+let allGradesData = []; // Biến toàn cục để lưu trữ dữ liệu điểm chi tiết
 
 function logout() {
     localStorage.removeItem('accessToken');
@@ -8,12 +8,18 @@ function logout() {
 }
 
 async function fetchWithAuth(url, options = {}) {
-    if (!token) { logout(); return Promise.reject("No token"); }
-    const headers = { ...options.headers, 'Authorization': `Bearer ${token}` };
+    if (!token) {
+        logout();
+        return Promise.reject("No token"); // Ngừng thực thi nếu không có token
+    }
+    const headers = { 'Content-Type': 'application/json', ...options.headers, 'Authorization': `Bearer ${token}` };
     const response = await fetch(url, { ...options, headers });
-    if (response.status === 401) { logout(); }
+    if (response.status === 401) {
+        logout();
+        throw new Error("Phiên đăng nhập đã hết hạn.");
+    }
     if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ detail: 'Lỗi không xác định' }));
+        const errorData = await response.json().catch(() => ({ detail: 'Lỗi không xác định từ server' }));
         throw new Error(errorData.detail);
     }
     return response.json();
@@ -27,30 +33,33 @@ async function loadProgress() {
             <p><strong>Số tín chỉ đã đạt:</strong> ${progress.tong_tin_chi_dat} / ${progress.tong_tin_chi_chuong_trinh}</p>
             <p><strong>Hoàn thành:</strong> ${progress.phan_tram_hoan_thanh}%</p>`;
     } catch (error) {
-        progressDiv.innerHTML = `<p style="color:red;">${error.message}</p>`;
+        console.error("Lỗi tải tiến độ:", error);
+        progressDiv.innerHTML = `<p style="color:red;">Lỗi tải tiến độ: ${error.message}</p>`;
     }
 }
 
-// Hàm mới để lấy danh sách các kỳ học
 async function loadSemesters() {
     const select = document.getElementById('semester-select');
     try {
-        const semesters = await fetchWithAuth(`${API_BASE_URL}/api/manager/ky-hoc`);
+        const semesters = await fetchWithAuth(`${API_BASE_URL}/api/manager/ky-hoc`); // API của Admin để lấy danh sách
         if (semesters.length > 0) {
             select.innerHTML = semesters.map(s => `<option value="${s.MaKy}">${s.TenKy} - ${s.NamHoc}</option>`).join('');
         } else {
             select.innerHTML = '<option value="">Không có dữ liệu</option>';
         }
     } catch (error) {
+        console.error("Lỗi tải kỳ học:", error);
         select.innerHTML = `<option value="">Lỗi tải kỳ học</option>`;
     }
 }
 
-// Hàm mới để xem điểm tổng kết kỳ
 async function viewSemesterSummary() {
     const ma_ky = document.getElementById('semester-select').value;
     const summaryDiv = document.getElementById('semester-summary');
-    if (!ma_ky) { alert('Vui lòng chọn một kỳ học.'); return; }
+    if (!ma_ky) {
+        alert('Vui lòng chọn một kỳ học.');
+        return;
+    }
 
     summaryDiv.innerHTML = `<p>Đang tải dữ liệu điểm kỳ ${ma_ky}...</p>`;
     summaryDiv.style.display = 'block';
@@ -64,11 +73,11 @@ async function viewSemesterSummary() {
             <p><strong>Số tín chỉ đạt trong kỳ:</strong> ${summary.SoTCDatKy}</p>
             <p><strong>Xếp loại học lực:</strong> ${summary.XepLoaiHocLucKy}</p>`;
     } catch (error) {
-        summaryDiv.innerHTML = `<p style="color:red;">${error.message}</p>`;
+        console.error("Lỗi xem điểm tổng kết:", error);
+        summaryDiv.innerHTML = `<p style="color:red;">Lỗi xem điểm tổng kết: ${error.message}</p>`;
     }
 }
 
-// Hàm mới để lấy danh sách môn học và đưa vào dropdown
 async function loadAndPopulateCourses() {
     const select = document.getElementById('course-select');
     try {
@@ -82,11 +91,11 @@ async function loadAndPopulateCourses() {
             select.innerHTML = '<option value="">Chưa đăng ký môn nào</option>';
         }
     } catch (error) {
+        console.error("Lỗi tải danh sách môn học:", error);
         select.innerHTML = `<option value="">Lỗi tải môn học</option>`;
     }
 }
 
-// Hàm mới để hiển thị chi tiết điểm của một môn
 function displayCourseDetails() {
     const ma_ltc = document.getElementById('course-select').value;
     const detailsDiv = document.getElementById('course-details');
@@ -111,9 +120,9 @@ function displayCourseDetails() {
                 <tr><th>Điểm giữa kỳ:</th><td>${grade.DiemGiuaKy ?? 'Chưa có'}</td></tr>
                 <tr><th>Điểm cuối kỳ:</th><td>${grade.DiemCuoiKy ?? 'Chưa có'}</td></tr>
                 <tr><th>Điểm thực hành:</th><td>${grade.DiemThucHanh ?? 'Chưa có'}</td></tr>
-                <tr style="font-weight: bold;"><th>Điểm tổng kết (Hệ 10):</th><td>${grade.DiemTongKetHe10 ?? 'Chưa có'}</td></tr>
-                <tr><th>Điểm chữ:</th><td>${grade.DiemChu ?? 'Chưa có'}</td></tr>
-                <tr><th>Trạng thái:</th><td>${grade.TrangThaiQuaMon ?? 'Chưa có'}</td></tr>
+                <tr style="font-weight: bold;"><th>Điểm tổng kết (Hệ 10):</th><td>${grade.DiemTongKetHe10 ?? 'N/A'}</td></tr>
+                <tr><th>Điểm chữ:</th><td>${grade.DiemChu ?? 'N/A'}</td></tr>
+                <tr><th>Trạng thái:</th><td>${grade.TrangThaiQuaMon ?? 'N/A'}</td></tr>
             </tbody>
         </table>`;
     detailsDiv.style.display = 'block';

@@ -18,18 +18,23 @@
             align-items: center;
             gap: 10px;
             margin-bottom: 1rem;
+            flex-wrap: wrap;
         }
         .input-group-inline select, .input-group-inline button {
-            padding: 8px;
+            padding: 8px 12px;
             font-size: 1rem;
             border-radius: 5px;
             border: 1px solid #ccc;
         }
         .input-group-inline button {
             cursor: pointer;
-            background-color: #28a745;
+            background-color: #007bff;
             color: white;
             border: none;
+            transition: background-color 0.2s;
+        }
+        .input-group-inline button:hover {
+            background-color: #0056b3;
         }
         .details-card {
             background-color: #fff;
@@ -37,10 +42,17 @@
             border-radius: 8px;
             margin-top: 1rem;
             border: 1px solid #e1e4e8;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         #course-details-table th, #course-details-table td {
              text-align: left;
              padding: 12px;
+             border-bottom: 1px solid #f1f1f1;
+        }
+        #course-details-table th {
+            width: 40%;
+            font-weight: 600;
+            color: #555;
         }
     </style>
 </head>
